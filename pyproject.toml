@@ -1,0 +1,30 @@
+[project]
+name = "solar_system"
+version = "0.1.0"
+description = "Scale model of the Solar System for 3D-printing"
+packages = [
+    {include = "solar_system", from = "src"},
+]
+authors = [
+    {name = "Seth Fischer", email = "seth@fischer.nz"}
+]
+license = "GPL-3.0-or-later"
+requires-python = ">=3.12"
+
+[tool.poetry.dependencies]
+
+[tool.poetry.group.dev.dependencies]
+black = ">=26.3.1,<27.0.0"
+flake8 = ">=7.3.0,<8.0.0"
+isort = ">=8.0.1,<9.0.0"
+
+[tool.black]
+target_version = ["py312"]
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
