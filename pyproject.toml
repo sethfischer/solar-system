@@ -11,7 +11,11 @@ authors = [
 license = "GPL-3.0-or-later"
 requires-python = ">=3.12"
 
+[tool.poetry.scripts]
+solar_system = "solar_system.application:main"
+
 [tool.poetry.dependencies]
+rich = "^14.3.4"
 
 [tool.poetry.group.dev.dependencies]
 black = ">=26.3.1,<27.0.0"
