@@ -15,6 +15,7 @@ requires-python = ">=3.12"
 solar_system = "solar_system.application:main"
 
 [tool.poetry.dependencies]
+cadquery = "^2.7.0"
 rich = "^14.3.4"
 
 [tool.poetry.group.dev.dependencies]

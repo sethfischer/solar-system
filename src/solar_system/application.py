@@ -2,9 +2,11 @@
 
 import csv
 import locale
+import logging
 import sys
 from argparse import ArgumentParser
 from fractions import Fraction
+from pathlib import Path
 
 from rich.console import Console
 from rich.table import Table
@@ -13,21 +15,29 @@ from typing_extensions import Literal
 
 from solar_system import __version__
 from solar_system.constants import KM_TO_MM, SUN_DIAMETER
+from solar_system.models_3d import DualHemispherePlanet3DModel
 from solar_system.solar_system import SolarSystem
 from solar_system.solar_system import solar_system as _solar_system
+
+logger = logging.getLogger(__name__)
 
 locale.setlocale(locale.LC_ALL, "")
 
 
-def format_fraction_colon(fraction: Fraction) -> str:
-    """Format fraction with colon rather than a solidus."""
-    return f"{fraction.numerator}:{fraction.denominator:,}"
+def format_fraction(
+    fraction: Fraction, seperator: str = ":", exponential: bool = False
+) -> str:
+    """Format fraction."""
+    if exponential:
+        return f"{fraction.numerator:}{seperator}{fraction.denominator:.0e}"
+
+    return f"{fraction.numerator}{seperator}{fraction.denominator:,}"
 
 
 def print_dimensions_pretty(solar_system: SolarSystem) -> int:
     """Print dimensions as a pretty table to stdout."""
-    planet_scale_formatted = format_fraction_colon(solar_system.planet_scale)
-    distance_from_sun_scale_formatted = format_fraction_colon(
+    planet_scale_formatted = format_fraction(solar_system.planet_scale)
+    distance_from_sun_scale_formatted = format_fraction(
         solar_system.distance_from_sun_scale
     )
 
@@ -67,8 +77,8 @@ def print_dimensions_pretty(solar_system: SolarSystem) -> int:
 
 def print_dimensions_csv(solar_system: SolarSystem) -> int:
     """Print dimensions table as CSV to stdout."""
-    planet_scale_formatted = format_fraction_colon(solar_system.planet_scale)
-    distance_from_sun_scale_formatted = format_fraction_colon(
+    planet_scale_formatted = format_fraction(solar_system.planet_scale)
+    distance_from_sun_scale_formatted = format_fraction(
         solar_system.distance_from_sun_scale
     )
 
@@ -111,6 +121,29 @@ def print_dimensions(
     return print_dimensions_pretty(solar_system)
 
 
+def build_planets(solar_system: SolarSystem, output_directory: Path) -> int:
+    """Export planet components in 3D model format."""
+    hemispheres: list[Literal["lower", "upper"]] = ["lower", "upper"]
+    scale_exponential = format_fraction(
+        solar_system.planet_scale, seperator="-", exponential=True
+    )
+    for planet in solar_system.planets.values():
+        for hemisphere in hemispheres:
+            path_name = (
+                output_directory
+                / f"{planet.name.lower()}_{hemisphere}_{scale_exponential}.stl"
+            )
+            logger.info(f"Exporting {path_name}")
+
+            planet_hemisphere = DualHemispherePlanet3DModel(
+                planet.scaled_diameter_mm(solar_system.planet_scale),
+                hemisphere=hemisphere,
+            )
+            planet_hemisphere.cq_object.export(path_name.as_posix())
+
+    return 0
+
+
 def build_parser() -> ArgumentParser:
     """Parse arguments."""
     parser = ArgumentParser(
@@ -138,11 +171,26 @@ def build_parser() -> ArgumentParser:
         help="Output data format: 'csv' or 'pretty' (default: pretty)",
     )
 
+    build_subparser = subparsers.add_parser(
+        "build",
+        help="Build files for 3D printing",
+    )
+    build_subparser.add_argument(
+        "-o",
+        "--output-directory",
+        metavar="DIR",
+        type=Path,
+        default=Path("./_build"),
+        help="Directory for built files (default: _build)",
+    )
+
     return parser
 
 
 def main() -> int:
     """Solar System console command."""
+    logging.basicConfig(level=logging.INFO)
+
     parser = build_parser()
 
     if len(sys.argv) == 1:
@@ -153,6 +201,9 @@ def main() -> int:
 
     if args.command == "dimensions":
         return print_dimensions(_solar_system, args.data_format)
+
+    if args.command == "build":
+        return build_planets(_solar_system, args.output_directory)
 
     return 0
 

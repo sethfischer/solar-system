@@ -2,13 +2,26 @@
 
 from fractions import Fraction
 
+#########################
+# Unit conversion factors
+#########################
+
 KM_TO_MM = 1e6
 
+
+########
+# Scales
+########
 
 # one : one billion one hundred and fifty million
 DEFAULT_PLANET_SCALE = Fraction(1, 1_150_000_000)
 # one : five trillion
 DEFAULT_DISTANCE_FROM_SUN_SCALE = Fraction(1, 5_000_000_000_000)
+
+
+#########################
+# Planet dimensions in km
+#########################
 
 SUN_DIAMETER = 1_391_400
 
