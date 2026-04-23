@@ -36,38 +36,38 @@ def format_fraction(
 
 def print_dimensions_pretty(solar_system: SolarSystem) -> int:
     """Print dimensions as a pretty table to stdout."""
-    planet_scale_formatted = format_fraction(solar_system.planet_scale)
-    distance_from_sun_scale_formatted = format_fraction(
-        solar_system.distance_from_sun_scale
+    scale_formatted = format_fraction(solar_system.scale)
+    heliocentric_distance_scale_formatted = format_fraction(
+        solar_system.heliocentric_distance_scale
     )
 
     table = Table(title="Dimensions of Planets of the Solar System")
     table.add_column("Planet")
     table.add_column("Diameter\nkm")
     table.add_column("Distance from Sun\nkm")
-    table.add_column(f"Model diameter\n{planet_scale_formatted}\nmm")
+    table.add_column(f"Model diameter\n{scale_formatted}\nmm")
     table.add_column(
-        f"Model distance from sun\n{distance_from_sun_scale_formatted}\nmm"
+        f"Model distance from sun\n{heliocentric_distance_scale_formatted}\nmm"
     )
 
     for planet in solar_system.planets.values():
-        scaled_distance_from_sun = planet.scaled_distance_from_sun_mm(
-            solar_system.distance_from_sun_scale
+        scaled_heliocentric_distance = planet.scaled_heliocentric_distance_mm(
+            solar_system.heliocentric_distance_scale
         )
         table.add_row(
             planet.name,
             "{:n}".format(planet.diameter_km),
-            "{:n}".format(planet.distance_from_sun_km),
-            f"{planet.scaled_diameter_mm(solar_system.planet_scale):,.1f}",
-            f"{scaled_distance_from_sun:,.1f}",
+            "{:n}".format(planet.heliocentric_distance_km),
+            f"{planet.scaled_diameter_mm(solar_system.scale):,.1f}",
+            f"{scaled_heliocentric_distance:,.1f}",
         )
 
     console = Console()
     console.print(table)
 
-    scaled_sun_diameter = SUN_DIAMETER * solar_system.planet_scale * KM_TO_MM
+    scaled_sun_diameter = SUN_DIAMETER * solar_system.scale * KM_TO_MM
     sun_scale_note = Text(
-        f"Note: At a scale of {planet_scale_formatted} "
+        f"Note: At a scale of {scale_formatted} "
         f"the Sun diameter is {scaled_sun_diameter:,.1f} mm."
     )
     console.print(sun_scale_note)
@@ -77,9 +77,9 @@ def print_dimensions_pretty(solar_system: SolarSystem) -> int:
 
 def print_dimensions_csv(solar_system: SolarSystem) -> int:
     """Print dimensions table as CSV to stdout."""
-    planet_scale_formatted = format_fraction(solar_system.planet_scale)
-    distance_from_sun_scale_formatted = format_fraction(
-        solar_system.distance_from_sun_scale
+    planet_scale_formatted = format_fraction(solar_system.scale)
+    heliocentric_distance_scale_formatted = format_fraction(
+        solar_system.heliocentric_distance_scale
     )
 
     writer = csv.writer(sys.stdout)
@@ -89,21 +89,21 @@ def print_dimensions_csv(solar_system: SolarSystem) -> int:
             "Diameter (km)",
             "Distance from Sun (km)",
             f"Model diameter {planet_scale_formatted} (mm)",
-            f"Model distance from sun {distance_from_sun_scale_formatted} (mm)",
+            f"Model distance from sun {heliocentric_distance_scale_formatted} (mm)",
         ]
     )
 
     for planet in solar_system.planets.values():
-        scaled_distance_from_sun = planet.scaled_distance_from_sun_mm(
-            solar_system.distance_from_sun_scale
+        scaled_heliocentric_distance = planet.scaled_heliocentric_distance_mm(
+            solar_system.heliocentric_distance_scale
         )
         writer.writerow(
             [
                 planet.name,
                 planet.diameter_km,
-                planet.distance_from_sun_km,
-                f"{planet.scaled_diameter_mm(solar_system.planet_scale):.1f}",
-                f"{scaled_distance_from_sun:.1f}",
+                planet.heliocentric_distance_km,
+                f"{planet.scaled_diameter_mm(solar_system.scale):.1f}",
+                f"{scaled_heliocentric_distance:.1f}",
             ]
         )
 
@@ -125,7 +125,7 @@ def build_planets(solar_system: SolarSystem, output_directory: Path) -> int:
     """Export planet components in 3D model format."""
     hemispheres: list[Literal["lower", "upper"]] = ["lower", "upper"]
     scale_exponential = format_fraction(
-        solar_system.planet_scale, seperator="-", exponential=True
+        solar_system.scale, seperator="-", exponential=True
     )
     for planet in solar_system.planets.values():
         for hemisphere in hemispheres:
@@ -136,7 +136,7 @@ def build_planets(solar_system: SolarSystem, output_directory: Path) -> int:
             logger.info(f"Exporting {path_name}")
 
             planet_hemisphere = DualHemispherePlanet3DModel(
-                planet.scaled_diameter_mm(solar_system.planet_scale),
+                planet.scaled_diameter_mm(solar_system.scale),
                 hemisphere=hemisphere,
             )
             planet_hemisphere.cq_object.export(path_name.as_posix())
