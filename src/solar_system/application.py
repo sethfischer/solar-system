@@ -48,7 +48,7 @@ def print_dimensions_pretty(solar_system: SolarSystem) -> int:
         f"Model distance from sun\n{heliocentric_distance_scale_formatted}\nmm"
     )
 
-    for celestial_body in solar_system.celestial_bodies.values():
+    for celestial_body in solar_system.celestial_bodies():
         scaled_heliocentric_distance = celestial_body.scaled_heliocentric_distance_mm(
             solar_system.heliocentric_distance_scale
         )
@@ -84,7 +84,7 @@ def print_dimensions_csv(solar_system: SolarSystem) -> int:
         ]
     )
 
-    for celestial_body in solar_system.celestial_bodies.values():
+    for celestial_body in solar_system.celestial_bodies():
         scaled_heliocentric_distance = celestial_body.scaled_heliocentric_distance_mm(
             solar_system.heliocentric_distance_scale
         )

@@ -1,7 +1,7 @@
 """Solar System dimensions."""
 
 from fractions import Fraction
-from typing import Generator
+from typing import Generator, Literal
 
 from solar_system.constants import (
     DEFAULT_HELIOCENTRIC_DISTANCE_SCALE,
@@ -67,8 +67,6 @@ class Star:
 class SolarSystem:
     """Solar system."""
 
-    celestial_bodies: dict[str, Planet | Star] = {}
-
     def __init__(
         self,
         star: Star,
@@ -76,28 +74,43 @@ class SolarSystem:
         heliocentric_distance_scale: Fraction = DEFAULT_HELIOCENTRIC_DISTANCE_SCALE,
     ):
         """Initialise a Solar System."""
+        self._celestial_bodies: dict[str, Planet | Star] = {}
+
         self.add_celestial_body(star)
         self.scale = scale
         self.heliocentric_distance_scale = heliocentric_distance_scale
 
     def add_celestial_body(self, celestial_body: Planet | Star) -> Planet | Star:
         """Add an object to the system."""
-        self.celestial_bodies[celestial_body.name.lower()] = celestial_body
+        self._celestial_bodies[celestial_body.name.lower()] = celestial_body
         return celestial_body
 
     def get_celestial_body(self, name: str) -> Planet | Star:
         """Get an object by its name."""
-        return self.celestial_bodies[name.lower()]
+        return self._celestial_bodies[name.lower()]
+
+    def celestial_bodies(
+        self, *, sort_by: Literal["distance"] = "distance"
+    ) -> Generator[Planet | Star, None, None]:
+        """Iterate over objects in the solar system, sorted by distance from sun."""
+        sort_keys = {
+            "distance": lambda p: p.heliocentric_distance_km,
+        }
+        celestial_bodies = iter(
+            sorted(self._celestial_bodies.values(), key=sort_keys[sort_by])
+        )
+
+        yield from celestial_bodies
 
     def planets(self) -> Generator[Planet, None, None]:
         """Iterate over planets in the solar system."""
-        for body in self.celestial_bodies.values():
+        for body in self._celestial_bodies.values():
             if isinstance(body, Planet):
                 yield body
 
     def stars(self) -> Generator[Star, None, None]:
         """Iterate over stars in the solar system."""
-        for body in self.celestial_bodies.values():
+        for body in self._celestial_bodies.values():
             if isinstance(body, Star):
                 yield body
 
