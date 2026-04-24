@@ -28,11 +28,11 @@ from solar_system.constants import (
 )
 
 
-class Planet:
-    """Planet."""
+class SphericalCelestialBody:
+    """Spherical celestial body."""
 
     def __init__(self, name: str, diameter_km: int, heliocentric_distance_km: int):
-        """Initialise a planet."""
+        """Initialise a spherical celestial body."""
         self.name = name
         self.diameter_km = diameter_km
         self.heliocentric_distance_km = heliocentric_distance_km
@@ -46,22 +46,12 @@ class Planet:
         return self.heliocentric_distance_km * scale * KM_TO_MM
 
 
-class Star:
+class Planet(SphericalCelestialBody):
+    """Planet."""
+
+
+class Star(SphericalCelestialBody):
     """Star."""
-
-    def __init__(self, name: str, diameter_km: int):
-        """Initialise a star."""
-        self.name = name
-        self.diameter_km = diameter_km
-        self.heliocentric_distance_km = SUN_HELIOCENTRIC_DISTANCE
-
-    def scaled_diameter_mm(self, scale: Fraction) -> float:
-        """Calculate scaled diameter in mm."""
-        return self.diameter_km * scale * KM_TO_MM
-
-    def scaled_heliocentric_distance_mm(self, scale: Fraction) -> float:
-        """Calculate scaled distance from sun in mm."""
-        return SUN_HELIOCENTRIC_DISTANCE * scale * KM_TO_MM
 
 
 class SolarSystem:
@@ -115,7 +105,7 @@ class SolarSystem:
                 yield body
 
 
-sun = Star("Sun", SUN_DIAMETER)
+sun = Star("Sun", SUN_DIAMETER, SUN_HELIOCENTRIC_DISTANCE)
 solar_system = SolarSystem(sun)
 earth = Planet("Earth", EARTH_DIAMETER, EARTH_HELIOCENTRIC_DISTANCE)
 solar_system.add_celestial_body(earth)
