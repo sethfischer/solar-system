@@ -1,9 +1,15 @@
-"""Planet models."""
+"""3D models."""
 
+from pathlib import Path
 from typing import Literal
 
 import cadquery as cq
 
+from solar_system.constants import (
+    DEFAULT_EXTRUSION_WIDTH_DEFAULT,
+    DEFAULT_EXTRUSION_WIDTH_EXTERNAL_PERIMETER,
+    FILAMENT_DIAMETER,
+)
 from solar_system.cq_containers import CqWorkplaneContainer
 
 
@@ -42,7 +48,7 @@ class DualHemispherePlanet3DModel(CqWorkplaneContainer):
         """Mounting pin cut pattern."""
         mounting_pin_diameter = 2
         mounting_pin_length = 50
-        clearance = 0.25
+        clearance = 0.25  # sliding clearance fit
 
         return (
             cq.Workplane()
@@ -53,10 +59,10 @@ class DualHemispherePlanet3DModel(CqWorkplaneContainer):
     @staticmethod
     def make_locating_pin_cut_pattern() -> cq.Workplane:
         """Locating pin cut pattern."""
-        locating_pin_diameter = 1.75  # filament diameter
+        locating_pin_diameter = FILAMENT_DIAMETER
         locating_pin_length = 20
         locating_pin_length_clearance = 2  # assembly clearance
-        locating_pin_diameter_clearance = 0.3
+        locating_pin_diameter_clearance = 0.3  # sliding clearance fit
 
         diameter = locating_pin_diameter + locating_pin_diameter_clearance
         length = locating_pin_length + locating_pin_length_clearance
@@ -105,7 +111,113 @@ class DualHemispherePlanet3DModel(CqWorkplaneContainer):
 
         return planet
 
-    @property
-    def cq_object(self) -> cq.Workplane:
-        """Get CadQuery object."""
-        return self._cq_object
+
+class StarSlice3DModel(CqWorkplaneContainer):
+    """Models a slice of a star."""
+
+    def __init__(
+        self,
+        diameter: float,
+        length: float,
+        thickness: float,
+        height: float,
+        *,
+        shell: bool = True,
+    ) -> None:
+        """Initialise a star slice."""
+        self.diameter = diameter
+        self.length = length
+        self.thickness = thickness
+        self.height = height
+        self.shell = shell
+
+        self._cq_object = self._make()
+
+    def _make(self) -> cq.Workplane:
+        star = cq.Workplane().sphere(self.diameter / 2)
+
+        star = star.split(keepTop=True)
+
+        slice_subtrahend = (
+            cq.Workplane()
+            .box(
+                self.length,
+                self.thickness,
+                self.height,
+                (True, True, False),
+            )
+            .translate(((self.diameter / 2) - (self.length / 2), 0, 0))
+        )
+
+        subtrahend = (
+            cq.Workplane()
+            .box(
+                self.diameter,
+                self.diameter,
+                self.diameter,
+            )
+            .cut(slice_subtrahend)
+        )
+
+        star_slice = star - subtrahend
+
+        mounting_pin_diameter = 2
+        mounting_pin_length = 20
+        clearance = 0.3  # interference press fit
+
+        mounting_pin_1_offset = (self.diameter / 2) - (self.length / 4)
+        mounting_pin_2_offset = (self.diameter / 2) - ((self.length / 4) * 3)
+        mounting_pin_locations = [
+            (mounting_pin_1_offset, 0),
+            (mounting_pin_2_offset, 0),
+        ]
+
+        if not self.shell:
+            star_slice = (
+                star_slice.transformed(rotate=(180, 0, 0))
+                .pushPoints(mounting_pin_locations)
+                .hole(mounting_pin_diameter + clearance, mounting_pin_length / 2)
+            )
+            return star_slice
+
+        shell_thickness = (
+            DEFAULT_EXTRUSION_WIDTH_EXTERNAL_PERIMETER * 2
+        ) + DEFAULT_EXTRUSION_WIDTH_DEFAULT
+        star_slice = star_slice.faces(">Z").shell(-shell_thickness)
+
+        reinforcing_thickness = 10
+        between_mounting_pins = mounting_pin_1_offset - mounting_pin_2_offset
+
+        mounting_pin_reinforcing = cq.Workplane(
+            origin=((self.diameter / 2) - (self.length / 2), 0, 0)
+        ).box(
+            between_mounting_pins + mounting_pin_diameter + (2 * reinforcing_thickness),
+            mounting_pin_diameter + (2 * reinforcing_thickness),
+            (mounting_pin_length / 2) + shell_thickness,
+            centered=(True, True, False),
+        )
+
+        star_slice = star_slice + mounting_pin_reinforcing
+
+        star_slice = (
+            star_slice.transformed(rotate=(180, 0, 0))
+            .pushPoints(mounting_pin_locations)
+            .hole(mounting_pin_diameter + clearance, mounting_pin_length / 2)
+        )
+
+        return star_slice
+
+    def filename(self, name: str, scale_exponential: str) -> Path:
+        """Construct a filename for the star slice."""
+
+        filename = f"{name.lower()}_slice_{scale_exponential}_"
+
+        if self.shell:
+            filename += "shell_"
+        else:
+            filename += "solid_"
+
+        filename += f"{self.length}x{self.thickness}x{self.height}"
+        filename += ".stl"
+
+        return Path(filename)

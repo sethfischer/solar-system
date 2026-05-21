@@ -8,15 +8,32 @@ from fractions import Fraction
 
 KM_TO_MM = 1e6
 
+#############################
+# Default 3D print parameters
+#############################
 
-########
-# Scales
-########
+FILAMENT_DIAMETER = 1.75
+DEFAULT_EXTRUSION_WIDTH_DEFAULT = 0.44
+DEFAULT_EXTRUSION_WIDTH_EXTERNAL_PERIMETER = 0.42
+
+
+################
+# Default scales
+################
 
 # one : one billion one hundred and fifty million
 DEFAULT_SCALE = Fraction(1, 1_150_000_000)
 # one : five trillion
 DEFAULT_HELIOCENTRIC_DISTANCE_SCALE = Fraction(1, 5_000_000_000_000)
+
+
+#####################################
+# Default star slice dimensions in mm
+#####################################
+
+DEFAULT_STAR_SLICE_LENGTH = 100
+DEFAULT_STAR_SLICE_THICKNESS = 65
+DEFAULT_STAR_SLICE_HEIGHT = 200
 
 
 #########################
