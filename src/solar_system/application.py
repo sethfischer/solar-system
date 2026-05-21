@@ -13,7 +13,12 @@ from rich.table import Table
 from typing_extensions import Literal
 
 from solar_system import __version__
-from solar_system.models_3d import DualHemispherePlanet3DModel
+from solar_system.constants import (
+    DEFAULT_STAR_SLICE_HEIGHT,
+    DEFAULT_STAR_SLICE_LENGTH,
+    DEFAULT_STAR_SLICE_THICKNESS,
+)
+from solar_system.models_3d import DualHemispherePlanet3DModel, StarSlice3DModel
 from solar_system.solar_system import SolarSystem
 from solar_system.solar_system import solar_system as _solar_system
 
@@ -112,8 +117,8 @@ def print_dimensions(
     return print_dimensions_pretty(solar_system)
 
 
-def build_planets(solar_system: SolarSystem, output_directory: Path) -> int:
-    """Export planet components in 3D model format."""
+def build_celestial_bodies(solar_system: SolarSystem, output_directory: Path) -> int:
+    """Export celestial bodies in 3D model format."""
     hemispheres: list[Literal["lower", "upper"]] = ["lower", "upper"]
     scale_exponential = format_fraction(
         solar_system.scale, seperator="-", exponential=True
@@ -131,6 +136,33 @@ def build_planets(solar_system: SolarSystem, output_directory: Path) -> int:
                 hemisphere=hemisphere,
             )
             planet_hemisphere.cq_object.export(path_name.as_posix())
+
+    for star in solar_system.stars():
+        star_model_3d_shell = StarSlice3DModel(
+            star.scaled_diameter_mm(solar_system.scale),
+            DEFAULT_STAR_SLICE_LENGTH,
+            DEFAULT_STAR_SLICE_THICKNESS,
+            DEFAULT_STAR_SLICE_HEIGHT,
+            shell=True,
+        )
+
+        star_filename = star_model_3d_shell.filename(star.name, scale_exponential)
+        star_path_name = output_directory / star_filename
+        logger.info(f"Exporting {star_path_name}")
+        star_model_3d_shell.cq_object.export(star_path_name.as_posix())
+
+        star_model_3d_solid = StarSlice3DModel(
+            star.scaled_diameter_mm(solar_system.scale),
+            DEFAULT_STAR_SLICE_LENGTH,
+            DEFAULT_STAR_SLICE_THICKNESS,
+            DEFAULT_STAR_SLICE_HEIGHT,
+            shell=False,
+        )
+
+        star_filename = star_model_3d_solid.filename(star.name, scale_exponential)
+        star_path_name = output_directory / star_filename
+        logger.info(f"Exporting {star_path_name}")
+        star_model_3d_solid.cq_object.export(star_path_name.as_posix())
 
     return 0
 
@@ -194,7 +226,7 @@ def main() -> int:
         return print_dimensions(_solar_system, args.data_format)
 
     if args.command == "build":
-        return build_planets(_solar_system, args.output_directory)
+        return build_celestial_bodies(_solar_system, args.output_directory)
 
     return 0
 
