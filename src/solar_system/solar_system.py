@@ -104,6 +104,39 @@ class SolarSystem:
             if isinstance(body, Star):
                 yield body
 
+    def hybrid_heliocentric_distance(self, body: SphericalCelestialBody) -> float:
+        """Calculate a planet's heliocentric distance using a hybrid scale.
+
+        To create a more accurate representation of the spacing between planets, each
+        planet's diameter is cumulatively added to its heliocentric distance. As a
+        result, the orbit of each outer planet is expanded by the combined diameters of
+        all preceding planets.
+        """
+        accumulated_planet_diameters_km: int = 0
+
+        # exclude Sun which is the origin
+        if body.name == "Sun":
+            return 0
+
+        for orbiting_body in self.celestial_bodies(sort_by="distance"):
+            # exclude Sun diameter
+            # planet heliocentric distance is relative to surface of the sun
+            if orbiting_body.name == "Sun":
+                continue
+
+            if orbiting_body.name != body.name:
+                accumulated_planet_diameters_km += orbiting_body.diameter_km
+            else:
+                # add half the planet diameter as mounting pin is in the centre of planet
+                accumulated_planet_diameters_km += int(orbiting_body.diameter_km / 2)
+                break
+
+        distance = (
+            body.heliocentric_distance_km * self.heliocentric_distance_scale
+        ) + (accumulated_planet_diameters_km * self.scale)
+
+        return distance * KM_TO_MM
+
 
 sun = Star("Sun", SUN_DIAMETER, SUN_HELIOCENTRIC_DISTANCE)
 solar_system = SolarSystem(sun)

@@ -52,6 +52,7 @@ def print_dimensions_pretty(solar_system: SolarSystem) -> int:
     table.add_column(
         f"Model distance from sun\n{heliocentric_distance_scale_formatted}\nmm"
     )
+    table.add_column("Model distance from sun\nhybrid scale\nmm")
 
     for celestial_body in solar_system.celestial_bodies():
         scaled_heliocentric_distance = celestial_body.scaled_heliocentric_distance_mm(
@@ -63,6 +64,7 @@ def print_dimensions_pretty(solar_system: SolarSystem) -> int:
             "{:n}".format(celestial_body.heliocentric_distance_km),
             f"{celestial_body.scaled_diameter_mm(solar_system.scale):,.1f}",
             f"{scaled_heliocentric_distance:,.1f}",
+            f"{solar_system.hybrid_heliocentric_distance(celestial_body):,.1f}",
         )
 
     console = Console()
@@ -86,6 +88,7 @@ def print_dimensions_csv(solar_system: SolarSystem) -> int:
             "Distance from Sun (km)",
             f"Model diameter {scale_formatted} (mm)",
             f"Model distance from sun {heliocentric_distance_scale_formatted} (mm)",
+            "Model distance from sun hybrid scale mm",
         ]
     )
 
@@ -100,6 +103,7 @@ def print_dimensions_csv(solar_system: SolarSystem) -> int:
                 celestial_body.heliocentric_distance_km,
                 f"{celestial_body.scaled_diameter_mm(solar_system.scale):.1f}",
                 f"{scaled_heliocentric_distance:.1f}",
+                f"{solar_system.hybrid_heliocentric_distance(celestial_body):.1f}",
             ]
         )
 
