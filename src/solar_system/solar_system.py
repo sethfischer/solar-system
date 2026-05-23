@@ -70,6 +70,12 @@ class SolarSystem:
         self.scale = scale
         self.heliocentric_distance_scale = heliocentric_distance_scale
 
+    def set_heliocentric_distance_scale(self, scale: Fraction) -> Fraction:
+        """Set the heliocentric distance scale."""
+        self.heliocentric_distance_scale = scale
+
+        return self.heliocentric_distance_scale
+
     def add_celestial_body(self, celestial_body: Planet | Star) -> Planet | Star:
         """Add an object to the system."""
         self._celestial_bodies[celestial_body.name.lower()] = celestial_body
@@ -127,7 +133,7 @@ class SolarSystem:
             if orbiting_body.name != body.name:
                 accumulated_planet_diameters_km += orbiting_body.diameter_km
             else:
-                # add half the planet diameter as mounting pin is in the centre of planet
+                # add half planet diameter as mounting pin is in centre of planet
                 accumulated_planet_diameters_km += int(orbiting_body.diameter_km / 2)
                 break
 
