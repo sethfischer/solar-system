@@ -1,5 +1,6 @@
 """Solar System console command."""
 
+import copy
 import csv
 import locale
 import logging
@@ -14,6 +15,7 @@ from typing_extensions import Literal
 
 from solar_system import __version__
 from solar_system.constants import (
+    DEFAULT_HELIOCENTRIC_DISTANCE_SCALE,
     DEFAULT_STAR_SLICE_HEIGHT,
     DEFAULT_STAR_SLICE_LENGTH,
     DEFAULT_STAR_SLICE_THICKNESS,
@@ -28,13 +30,16 @@ locale.setlocale(locale.LC_ALL, "")
 
 
 def format_fraction(
-    fraction: Fraction, seperator: str = ":", exponential: bool = False
+    fraction: Fraction,
+    vinculum: str = ":",
+    exponential: bool = False,
+    decimal_seperator: str = ",",
 ) -> str:
     """Format fraction."""
     if exponential:
-        return f"{fraction.numerator:}{seperator}{fraction.denominator:.0e}"
+        return f"{fraction.numerator:}{vinculum}{fraction.denominator:.0e}"
 
-    return f"{fraction.numerator}{seperator}{fraction.denominator:,}"
+    return f"{fraction.numerator}{vinculum}{fraction.denominator:{decimal_seperator}}"
 
 
 def print_dimensions_pretty(solar_system: SolarSystem) -> int:
@@ -125,7 +130,7 @@ def build_celestial_bodies(solar_system: SolarSystem, output_directory: Path) ->
     """Export celestial bodies in 3D model format."""
     hemispheres: list[Literal["lower", "upper"]] = ["lower", "upper"]
     scale_exponential = format_fraction(
-        solar_system.scale, seperator="-", exponential=True
+        solar_system.scale, vinculum="-", exponential=True
     )
     for planet in solar_system.planets():
         for hemisphere in hemispheres:
@@ -198,6 +203,28 @@ def build_parser() -> ArgumentParser:
         help="Output data format: 'csv' or 'pretty' (default: pretty)",
     )
 
+    default_heliocentric_scale_formatted = format_fraction(
+        DEFAULT_HELIOCENTRIC_DISTANCE_SCALE, decimal_seperator="_"
+    )
+    heliocentric_scale_help = f"""
+    Heliocentric distance scale.
+
+    Accepts an integer to be used as the denominator
+    e.g. 5_000_000_000_000 or 5000000000000.
+
+    Integer values are interpreted as 1:<value>
+    e.g. 1:5_000_000_000_000.
+
+    (default: {default_heliocentric_scale_formatted})
+    """
+    dimensions_subparser.add_argument(
+        "--heliocentric-scale",
+        type=int,
+        dest="heliocentric_scale",
+        default=DEFAULT_HELIOCENTRIC_DISTANCE_SCALE.denominator,
+        help=heliocentric_scale_help,
+    )
+
     build_subparser = subparsers.add_parser(
         "build",
         help="Build files for 3D printing",
@@ -226,11 +253,15 @@ def main() -> int:
 
     args = parser.parse_args()
 
+    solar_system = copy.deepcopy(_solar_system)
+    heliocentric_distance_scale = Fraction(1, args.heliocentric_scale)
+    solar_system.set_heliocentric_distance_scale(heliocentric_distance_scale)
+
     if args.command == "dimensions":
-        return print_dimensions(_solar_system, args.data_format)
+        return print_dimensions(solar_system, args.data_format)
 
     if args.command == "build":
-        return build_celestial_bodies(_solar_system, args.output_directory)
+        return build_celestial_bodies(solar_system, args.output_directory)
 
     return 0
 
