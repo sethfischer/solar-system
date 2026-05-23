@@ -14,21 +14,28 @@ from solar_system.cq_containers import CqWorkplaneContainer
 
 
 class DualHemispherePlanet3DModel(CqWorkplaneContainer):
-    """Models a planet as two hemispheres."""
+    """Models a planet as two hemispheres.
+
+    Hemispheres are intended to be 3D printed with the plane face on the print bed.
+    """
 
     _cq_object: cq.Workplane
 
     def __init__(
         self, diameter: float, hemisphere: Literal["lower", "upper"] = "upper"
     ) -> None:
-        """Initialise a planet."""
+        """Initialise a planet.
+
+        :param diameter: Plane diameter
+        :param hemisphere: Model either the upper or the lower hemisphere.
+        """
         self.diameter = diameter
         self.hemisphere = hemisphere
 
         self._cq_object = self._make()
 
     def _make(self) -> cq.Workplane:
-        """Make planet."""
+        """Make planet hemisphere."""
         if self.diameter >= 15:
             planet = self._make_large_planet()
         else:
@@ -45,7 +52,10 @@ class DualHemispherePlanet3DModel(CqWorkplaneContainer):
 
     @staticmethod
     def make_mounting_pin_cut_pattern() -> cq.Workplane:
-        """Mounting pin cut pattern."""
+        """Mounting pin cut pattern.
+
+        Planets are mounted on a metal pin.
+        """
         mounting_pin_diameter = 2
         mounting_pin_length = 50
         clearance = 0.25  # sliding clearance fit
@@ -58,7 +68,11 @@ class DualHemispherePlanet3DModel(CqWorkplaneContainer):
 
     @staticmethod
     def make_locating_pin_cut_pattern() -> cq.Workplane:
-        """Locating pin cut pattern."""
+        """Locating pin cut pattern.
+
+        Planet hemisphere are glued together with alignment aided by a central locating
+        pin.
+        """
         locating_pin_diameter = FILAMENT_DIAMETER
         locating_pin_length = 20
         locating_pin_length_clearance = 2  # assembly clearance
@@ -208,7 +222,11 @@ class StarSlice3DModel(CqWorkplaneContainer):
         return star_slice
 
     def filename(self, name: str, scale_exponential: str) -> Path:
-        """Construct a filename for the star slice."""
+        """Construct a filename for a star slice.
+
+        :param name: Name of star
+        :param scale_exponential: Scale formatted using exponent notation
+        """
 
         filename = f"{name.lower()}_slice_{scale_exponential}_"
 

@@ -32,7 +32,12 @@ class SphericalCelestialBody:
     """Spherical celestial body."""
 
     def __init__(self, name: str, diameter_km: int, heliocentric_distance_km: int):
-        """Initialise a spherical celestial body."""
+        """Initialise a spherical celestial body.
+
+        :param name: Name of celestial body
+        :param diameter_km: Diameter of celestial body in km
+        :param heliocentric_distance_km: Distance from Sun in km
+        """
         self.name = name
         self.diameter_km = diameter_km
         self.heliocentric_distance_km = heliocentric_distance_km
@@ -59,36 +64,44 @@ class SolarSystem:
 
     def __init__(
         self,
-        star: Star,
+        central_star: Star,
         scale: Fraction = DEFAULT_SCALE,
         heliocentric_distance_scale: Fraction = DEFAULT_HELIOCENTRIC_DISTANCE_SCALE,
     ):
-        """Initialise a Solar System."""
+        """Initialise a Solar System.
+
+        :param central_star: Central star
+        :param scale: Celestial body scale
+        :param heliocentric_distance_scale: Distance from cental star scale
+        """
         self._celestial_bodies: dict[str, Planet | Star] = {}
 
-        self.add_celestial_body(star)
+        self.add_celestial_body(central_star)
         self.scale = scale
         self.heliocentric_distance_scale = heliocentric_distance_scale
 
     def set_heliocentric_distance_scale(self, scale: Fraction) -> Fraction:
-        """Set the heliocentric distance scale."""
+        """Set heliocentric distance scale."""
         self.heliocentric_distance_scale = scale
 
         return self.heliocentric_distance_scale
 
     def add_celestial_body(self, celestial_body: Planet | Star) -> Planet | Star:
-        """Add an object to the system."""
+        """Add a celestial body to the system."""
         self._celestial_bodies[celestial_body.name.lower()] = celestial_body
         return celestial_body
 
     def get_celestial_body(self, name: str) -> Planet | Star:
-        """Get an object by its name."""
+        """Get a celestial body by its name."""
         return self._celestial_bodies[name.lower()]
 
     def celestial_bodies(
         self, *, sort_by: Literal["distance"] = "distance"
     ) -> Generator[Planet | Star, None, None]:
-        """Iterate over objects in the solar system, sorted by distance from sun."""
+        """Iterate over celestial bodies in the solar system.
+
+        Sorted by distance from central star.
+        """
         sort_keys = {
             "distance": lambda p: p.heliocentric_distance_km,
         }

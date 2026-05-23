@@ -35,7 +35,17 @@ def format_fraction(
     exponential: bool = False,
     decimal_seperator: str = ",",
 ) -> str:
-    """Format fraction."""
+    """Format fraction.
+
+    Format a fraction for presentation. Default values are suitable for a scale ratio.
+
+    :param fraction: The Fraction to be formated
+    :param vinculum: The Fraction seperator
+    :param exponential: Abbreviate denominator by using exponent notation
+    :param decimal_seperator: Decimal seperator to use for the denominator
+
+    :return: Fraction formatted as a string
+    """
     if exponential:
         return f"{fraction.numerator:}{vinculum}{fraction.denominator:.0e}"
 
@@ -43,7 +53,11 @@ def format_fraction(
 
 
 def print_dimensions_pretty(solar_system: SolarSystem) -> int:
-    """Print dimensions as a pretty table to stdout."""
+    """Print dimensions as a pretty table.
+
+    Print the dimensions of the solar system as a pretty table to stdout along with
+    scaled dimensions.
+    """
     scale_formatted = format_fraction(solar_system.scale)
     heliocentric_distance_scale_formatted = format_fraction(
         solar_system.heliocentric_distance_scale
@@ -79,7 +93,11 @@ def print_dimensions_pretty(solar_system: SolarSystem) -> int:
 
 
 def print_dimensions_csv(solar_system: SolarSystem) -> int:
-    """Print dimensions table as CSV to stdout."""
+    """Export dimensions as CSV.
+
+    Export the dimensions of the solar system as a CSV to stdout along with scaled
+    dimensions.
+    """
     scale_formatted = format_fraction(solar_system.scale)
     heliocentric_distance_scale_formatted = format_fraction(
         solar_system.heliocentric_distance_scale
@@ -118,7 +136,11 @@ def print_dimensions_csv(solar_system: SolarSystem) -> int:
 def print_dimensions(
     solar_system: SolarSystem, data_format: Literal["csv", "pretty"]
 ) -> int:
-    """Print dimensions to stdout using specified formatter."""
+    """Print dimensions to stdout using specified formatter.
+
+    :param solar_system: Solar System
+    :param data_format: Data format
+    """
     if data_format == "csv":
         return print_dimensions_csv(solar_system)
 
@@ -127,7 +149,13 @@ def print_dimensions(
 
 
 def build_celestial_bodies(solar_system: SolarSystem, output_directory: Path) -> int:
-    """Export celestial bodies in 3D model format."""
+    """Export celestial bodies in 3D model format.
+
+    Export Solar System celestial bodies in formats suitable for 3D printing.
+
+    :param solar_system: Solar System
+    :param output_directory: Output directory
+    """
     hemispheres: list[Literal["lower", "upper"]] = ["lower", "upper"]
     scale_exponential = format_fraction(
         solar_system.scale, vinculum="-", exponential=True
@@ -177,7 +205,7 @@ def build_celestial_bodies(solar_system: SolarSystem, output_directory: Path) ->
 
 
 def build_parser() -> ArgumentParser:
-    """Parse arguments."""
+    """Parse CLI arguments."""
     parser = ArgumentParser(
         prog="solar_system",
         description="Solar System console command.",
