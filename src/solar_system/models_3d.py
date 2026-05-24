@@ -1,5 +1,6 @@
 """3D models."""
 
+from fractions import Fraction
 from pathlib import Path
 from typing import Literal
 
@@ -11,6 +12,7 @@ from solar_system.constants import (
     FILAMENT_DIAMETER,
 )
 from solar_system.cq_containers import CqWorkplaneContainer
+from solar_system.utils import format_fraction
 
 
 class DualHemispherePlanet3DModel(CqWorkplaneContainer):
@@ -221,12 +223,13 @@ class StarSlice3DModel(CqWorkplaneContainer):
 
         return star_slice
 
-    def filename(self, name: str, scale_exponential: str) -> Path:
+    def filename(self, name: str, scale: Fraction) -> Path:
         """Construct a filename for a star slice.
 
         :param name: Name of star
-        :param scale_exponential: Scale formatted using exponent notation
+        :param scale: Scale used for solar system objects
         """
+        scale_exponential = format_fraction(scale, vinculum="-", exponential=True)
 
         filename = f"{name.lower()}_slice_{scale_exponential}_"
 
