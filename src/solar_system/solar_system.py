@@ -4,51 +4,51 @@ from fractions import Fraction
 from typing import Generator, Literal
 
 from solar_system.constants import (
-    DEFAULT_HELIOCENTRIC_DISTANCE_SCALE,
+    DEFAULT_HCO_SCALE,
     DEFAULT_SCALE,
     EARTH_DIAMETER,
-    EARTH_HELIOCENTRIC_DISTANCE,
+    EARTH_HCO,
     JUPITER_DIAMETER,
-    JUPITER_HELIOCENTRIC_DISTANCE,
+    JUPITER_HCO,
     KM_TO_MM,
     MARS_DIAMETER,
-    MARS_HELIOCENTRIC_DISTANCE,
+    MARS_HCO,
     MERCURY_DIAMETER,
-    MERCURY_HELIOCENTRIC_DISTANCE,
+    MERCURY_HCO,
     NEPTUNE_DIAMETER,
-    NEPTUNE_HELIOCENTRIC_DISTANCE,
+    NEPTUNE_HCO,
     SATURN_DIAMETER,
-    SATURN_HELIOCENTRIC_DISTANCE,
+    SATURN_HCO,
     SUN_DIAMETER,
-    SUN_HELIOCENTRIC_DISTANCE,
+    SUN_HCO,
     URANUS_DIAMETER,
-    URANUS_HELIOCENTRIC_DISTANCE,
+    URANUS_HCO,
     VENUS_DIAMETER,
-    VENUS_HELIOCENTRIC_DISTANCE,
+    VENUS_HCO,
 )
 
 
 class SphericalCelestialBody:
     """Spherical celestial body."""
 
-    def __init__(self, name: str, diameter_km: int, heliocentric_distance_km: int):
+    def __init__(self, name: str, diameter_km: int, hco_km: int):
         """Initialise a spherical celestial body.
 
         :param name: Name of celestial body
         :param diameter_km: Diameter of celestial body in km
-        :param heliocentric_distance_km: Distance from Sun in km
+        :param hco_km: Distance from Sun in km
         """
         self.name = name
         self.diameter_km = diameter_km
-        self.heliocentric_distance_km = heliocentric_distance_km
+        self.hco_km = hco_km
 
     def scaled_diameter_mm(self, scale: Fraction) -> float:
         """Calculate scaled diameter in mm."""
         return self.diameter_km * scale * KM_TO_MM
 
-    def scaled_heliocentric_distance_mm(self, scale: Fraction) -> float:
+    def scaled_hco_mm(self, scale: Fraction) -> float:
         """Calculate scaled distance from sun in mm."""
-        return self.heliocentric_distance_km * scale * KM_TO_MM
+        return self.hco_km * scale * KM_TO_MM
 
 
 class Planet(SphericalCelestialBody):
@@ -66,25 +66,25 @@ class SolarSystem:
         self,
         central_star: Star,
         scale: Fraction = DEFAULT_SCALE,
-        heliocentric_distance_scale: Fraction = DEFAULT_HELIOCENTRIC_DISTANCE_SCALE,
+        hco_scale: Fraction = DEFAULT_HCO_SCALE,
     ):
         """Initialise a Solar System.
 
         :param central_star: Central star
         :param scale: Celestial body scale
-        :param heliocentric_distance_scale: Distance from cental star scale
+        :param hco_scale: Distance from cental star scale
         """
         self._celestial_bodies: dict[str, Planet | Star] = {}
 
         self.add_celestial_body(central_star)
         self.scale = scale
-        self.heliocentric_distance_scale = heliocentric_distance_scale
+        self.hco_scale = hco_scale
 
-    def set_heliocentric_distance_scale(self, scale: Fraction) -> Fraction:
+    def set_hco_scale(self, scale: Fraction) -> Fraction:
         """Set heliocentric distance scale."""
-        self.heliocentric_distance_scale = scale
+        self.hco_scale = scale
 
-        return self.heliocentric_distance_scale
+        return self.hco_scale
 
     def add_celestial_body(self, celestial_body: Planet | Star) -> Planet | Star:
         """Add a celestial body to the system."""
@@ -96,14 +96,14 @@ class SolarSystem:
         return self._celestial_bodies[name.lower()]
 
     def celestial_bodies(
-        self, *, sort_by: Literal["distance"] = "distance"
+        self, *, sort_by: Literal["hco"] = "hco"
     ) -> Generator[Planet | Star, None, None]:
         """Iterate over celestial bodies in the solar system.
 
         Sorted by distance from central star.
         """
         sort_keys = {
-            "distance": lambda p: p.heliocentric_distance_km,
+            "hco": lambda p: p.hco_km,
         }
         celestial_bodies = iter(
             sorted(self._celestial_bodies.values(), key=sort_keys[sort_by])
@@ -123,7 +123,7 @@ class SolarSystem:
             if isinstance(body, Star):
                 yield body
 
-    def hybrid_heliocentric_distance(self, body: SphericalCelestialBody) -> float:
+    def hybrid_hco(self, body: SphericalCelestialBody) -> float:
         """Calculate a planet's heliocentric distance using a hybrid scale.
 
         To create a more accurate representation of the spacing between planets, each
@@ -137,7 +137,7 @@ class SolarSystem:
         if body.name == "Sun":
             return 0
 
-        for orbiting_body in self.celestial_bodies(sort_by="distance"):
+        for orbiting_body in self.celestial_bodies(sort_by="hco"):
             # exclude Sun diameter
             # planet heliocentric distance is relative to surface of the sun
             if orbiting_body.name == "Sun":
@@ -150,28 +150,28 @@ class SolarSystem:
                 accumulated_planet_diameters_km += int(orbiting_body.diameter_km / 2)
                 break
 
-        distance = (
-            body.heliocentric_distance_km * self.heliocentric_distance_scale
-        ) + (accumulated_planet_diameters_km * self.scale)
+        distance = (body.hco_km * self.hco_scale) + (
+            accumulated_planet_diameters_km * self.scale
+        )
 
         return distance * KM_TO_MM
 
 
-sun = Star("Sun", SUN_DIAMETER, SUN_HELIOCENTRIC_DISTANCE)
+sun = Star("Sun", SUN_DIAMETER, SUN_HCO)
 solar_system = SolarSystem(sun)
-earth = Planet("Earth", EARTH_DIAMETER, EARTH_HELIOCENTRIC_DISTANCE)
+earth = Planet("Earth", EARTH_DIAMETER, EARTH_HCO)
 solar_system.add_celestial_body(earth)
-jupiter = Planet("Jupiter", JUPITER_DIAMETER, JUPITER_HELIOCENTRIC_DISTANCE)
+jupiter = Planet("Jupiter", JUPITER_DIAMETER, JUPITER_HCO)
 solar_system.add_celestial_body(jupiter)
-mars = Planet("Mars", MARS_DIAMETER, MARS_HELIOCENTRIC_DISTANCE)
+mars = Planet("Mars", MARS_DIAMETER, MARS_HCO)
 solar_system.add_celestial_body(mars)
-mercury = Planet("Mercury", MERCURY_DIAMETER, MERCURY_HELIOCENTRIC_DISTANCE)
+mercury = Planet("Mercury", MERCURY_DIAMETER, MERCURY_HCO)
 solar_system.add_celestial_body(mercury)
-neptune = Planet("Neptune", NEPTUNE_DIAMETER, NEPTUNE_HELIOCENTRIC_DISTANCE)
+neptune = Planet("Neptune", NEPTUNE_DIAMETER, NEPTUNE_HCO)
 solar_system.add_celestial_body(neptune)
-saturn = Planet("Saturn", SATURN_DIAMETER, SATURN_HELIOCENTRIC_DISTANCE)
+saturn = Planet("Saturn", SATURN_DIAMETER, SATURN_HCO)
 solar_system.add_celestial_body(saturn)
-uranus = Planet("Uranus", URANUS_DIAMETER, URANUS_HELIOCENTRIC_DISTANCE)
+uranus = Planet("Uranus", URANUS_DIAMETER, URANUS_HCO)
 solar_system.add_celestial_body(uranus)
-venus = Planet("Venus", VENUS_DIAMETER, VENUS_HELIOCENTRIC_DISTANCE)
+venus = Planet("Venus", VENUS_DIAMETER, VENUS_HCO)
 solar_system.add_celestial_body(venus)
