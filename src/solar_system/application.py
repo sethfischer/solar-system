@@ -23,33 +23,11 @@ from solar_system.constants import (
 from solar_system.models_3d import DualHemispherePlanet3DModel, StarSlice3DModel
 from solar_system.solar_system import SolarSystem
 from solar_system.solar_system import solar_system as _solar_system
+from solar_system.utils import format_fraction
 
 logger = logging.getLogger(__name__)
 
 locale.setlocale(locale.LC_ALL, "")
-
-
-def format_fraction(
-    fraction: Fraction,
-    vinculum: str = ":",
-    exponential: bool = False,
-    decimal_seperator: str = ",",
-) -> str:
-    """Format fraction.
-
-    Format a fraction for presentation. Default values are suitable for a scale ratio.
-
-    :param fraction: The Fraction to be formated
-    :param vinculum: The Fraction seperator
-    :param exponential: Abbreviate denominator by using exponent notation
-    :param decimal_seperator: Decimal seperator to use for the denominator
-
-    :return: Fraction formatted as a string
-    """
-    if exponential:
-        return f"{fraction.numerator:}{vinculum}{fraction.denominator:.0e}"
-
-    return f"{fraction.numerator}{vinculum}{fraction.denominator:{decimal_seperator}}"
 
 
 def print_dimensions_pretty(solar_system: SolarSystem) -> int:
@@ -173,7 +151,7 @@ def build_celestial_bodies(solar_system: SolarSystem, output_directory: Path) ->
             shell=True,
         )
 
-        star_filename = star_model_3d_shell.filename(star.name, scale_exponential)
+        star_filename = star_model_3d_shell.filename(star.name, solar_system.scale)
         star_path_name = output_directory / star_filename
         logger.info(f"Exporting {star_path_name}")
         star_model_3d_shell.cq_object.export(star_path_name.as_posix())
@@ -186,7 +164,7 @@ def build_celestial_bodies(solar_system: SolarSystem, output_directory: Path) ->
             shell=False,
         )
 
-        star_filename = star_model_3d_solid.filename(star.name, scale_exponential)
+        star_filename = star_model_3d_solid.filename(star.name, solar_system.scale)
         star_path_name = output_directory / star_filename
         logger.info(f"Exporting {star_path_name}")
         star_model_3d_solid.cq_object.export(star_path_name.as_posix())
