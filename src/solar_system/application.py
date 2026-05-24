@@ -206,30 +206,7 @@ def build_celestial_bodies(solar_system: SolarSystem, output_directory: Path) ->
 
 def build_parser() -> ArgumentParser:
     """Parse CLI arguments."""
-    parser = ArgumentParser(
-        prog="solar_system",
-        description="Solar System console command.",
-    )
-    parser.add_argument(
-        "-v",
-        "--version",
-        action="version",
-        version=f"%(prog)s {__version__}",
-    )
-
-    subparsers = parser.add_subparsers(dest="command")
-
-    dimensions_subparser = subparsers.add_parser(
-        "dimensions", help="Show the dimensions of the solar system"
-    )
-    dimensions_subparser.add_argument(
-        "-f",
-        "--format",
-        dest="data_format",
-        choices=["csv", "pretty"],
-        default="pretty",
-        help="Output data format: 'csv' or 'pretty' (default: pretty)",
-    )
+    parent_parser = ArgumentParser(add_help=False)
 
     default_heliocentric_scale_formatted = format_fraction(
         DEFAULT_HELIOCENTRIC_DISTANCE_SCALE, decimal_seperator="_"
@@ -245,7 +222,7 @@ def build_parser() -> ArgumentParser:
 
     (default: {default_heliocentric_scale_formatted})
     """
-    dimensions_subparser.add_argument(
+    parent_parser.add_argument(
         "--heliocentric-scale",
         type=int,
         dest="heliocentric_scale",
@@ -253,8 +230,36 @@ def build_parser() -> ArgumentParser:
         help=heliocentric_scale_help,
     )
 
+    parser = ArgumentParser(
+        prog="solar_system",
+        description="Solar System console command.",
+    )
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
+    )
+
+    subparsers = parser.add_subparsers(dest="command")
+
+    dimensions_subparser = subparsers.add_parser(
+        "dimensions",
+        parents=[parent_parser],
+        help="Show the dimensions of the solar system",
+    )
+    dimensions_subparser.add_argument(
+        "-f",
+        "--format",
+        dest="data_format",
+        choices=["csv", "pretty"],
+        default="pretty",
+        help="Output data format: 'csv' or 'pretty' (default: pretty)",
+    )
+
     build_subparser = subparsers.add_parser(
         "build",
+        parents=[parent_parser],
         help="Build files for 3D printing",
     )
     build_subparser.add_argument(
