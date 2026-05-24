@@ -15,7 +15,7 @@ from typing_extensions import Literal
 
 from solar_system import __version__
 from solar_system.constants import (
-    DEFAULT_HELIOCENTRIC_DISTANCE_SCALE,
+    DEFAULT_HCO_SCALE,
     DEFAULT_STAR_SLICE_HEIGHT,
     DEFAULT_STAR_SLICE_LENGTH,
     DEFAULT_STAR_SLICE_THICKNESS,
@@ -59,31 +59,25 @@ def print_dimensions_pretty(solar_system: SolarSystem) -> int:
     scaled dimensions.
     """
     scale_formatted = format_fraction(solar_system.scale)
-    heliocentric_distance_scale_formatted = format_fraction(
-        solar_system.heliocentric_distance_scale
-    )
+    hco_scale_formatted = format_fraction(solar_system.hco_scale)
 
     table = Table(title="Objects of the Solar System")
     table.add_column("Name")
     table.add_column("Diameter\nkm")
     table.add_column("Distance from Sun\nkm")
     table.add_column(f"Model diameter\n{scale_formatted}\nmm")
-    table.add_column(
-        f"Model distance from sun\n{heliocentric_distance_scale_formatted}\nmm"
-    )
+    table.add_column(f"Model distance from sun\n{hco_scale_formatted}\nmm")
     table.add_column("Model distance from sun\nhybrid scale\nmm")
 
     for celestial_body in solar_system.celestial_bodies():
-        scaled_heliocentric_distance = celestial_body.scaled_heliocentric_distance_mm(
-            solar_system.heliocentric_distance_scale
-        )
+        scaled_hco = celestial_body.scaled_hco_mm(solar_system.hco_scale)
         table.add_row(
             celestial_body.name,
             "{:n}".format(celestial_body.diameter_km),
-            "{:n}".format(celestial_body.heliocentric_distance_km),
+            "{:n}".format(celestial_body.hco_km),
             f"{celestial_body.scaled_diameter_mm(solar_system.scale):,.1f}",
-            f"{scaled_heliocentric_distance:,.1f}",
-            f"{solar_system.hybrid_heliocentric_distance(celestial_body):,.1f}",
+            f"{scaled_hco:,.1f}",
+            f"{solar_system.hybrid_hco(celestial_body):,.1f}",
         )
 
     console = Console()
@@ -99,9 +93,7 @@ def print_dimensions_csv(solar_system: SolarSystem) -> int:
     dimensions.
     """
     scale_formatted = format_fraction(solar_system.scale)
-    heliocentric_distance_scale_formatted = format_fraction(
-        solar_system.heliocentric_distance_scale
-    )
+    hco_scale_formatted = format_fraction(solar_system.hco_scale)
 
     writer = csv.writer(sys.stdout)
     writer.writerow(
@@ -110,23 +102,21 @@ def print_dimensions_csv(solar_system: SolarSystem) -> int:
             "Diameter (km)",
             "Distance from Sun (km)",
             f"Model diameter {scale_formatted} (mm)",
-            f"Model distance from sun {heliocentric_distance_scale_formatted} (mm)",
+            f"Model distance from sun {hco_scale_formatted} (mm)",
             "Model distance from sun hybrid scale mm",
         ]
     )
 
     for celestial_body in solar_system.celestial_bodies():
-        scaled_heliocentric_distance = celestial_body.scaled_heliocentric_distance_mm(
-            solar_system.heliocentric_distance_scale
-        )
+        scaled_hco = celestial_body.scaled_hco_mm(solar_system.hco_scale)
         writer.writerow(
             [
                 celestial_body.name,
                 celestial_body.diameter_km,
-                celestial_body.heliocentric_distance_km,
+                celestial_body.hco_km,
                 f"{celestial_body.scaled_diameter_mm(solar_system.scale):.1f}",
-                f"{scaled_heliocentric_distance:.1f}",
-                f"{solar_system.hybrid_heliocentric_distance(celestial_body):.1f}",
+                f"{scaled_hco:.1f}",
+                f"{solar_system.hybrid_hco(celestial_body):.1f}",
             ]
         )
 
@@ -208,10 +198,10 @@ def build_parser() -> ArgumentParser:
     """Parse CLI arguments."""
     parent_parser = ArgumentParser(add_help=False)
 
-    default_heliocentric_scale_formatted = format_fraction(
-        DEFAULT_HELIOCENTRIC_DISTANCE_SCALE, decimal_seperator="_"
+    default_hco_scale_formatted = format_fraction(
+        DEFAULT_HCO_SCALE, decimal_seperator="_"
     )
-    heliocentric_scale_help = f"""
+    hco_scale_help = f"""
     Heliocentric distance scale.
 
     Accepts an integer to be used as the denominator
@@ -220,14 +210,14 @@ def build_parser() -> ArgumentParser:
     Integer values are interpreted as 1:<value>
     e.g. 1:5_000_000_000_000.
 
-    (default: {default_heliocentric_scale_formatted})
+    (default: {default_hco_scale_formatted})
     """
     parent_parser.add_argument(
         "--heliocentric-scale",
         type=int,
         dest="heliocentric_scale",
-        default=DEFAULT_HELIOCENTRIC_DISTANCE_SCALE.denominator,
-        help=heliocentric_scale_help,
+        default=DEFAULT_HCO_SCALE.denominator,
+        help=hco_scale_help,
     )
 
     parser = ArgumentParser(
@@ -287,8 +277,8 @@ def main() -> int:
     args = parser.parse_args()
 
     solar_system = copy.deepcopy(_solar_system)
-    heliocentric_distance_scale = Fraction(1, args.heliocentric_scale)
-    solar_system.set_heliocentric_distance_scale(heliocentric_distance_scale)
+    hco_scale = Fraction(1, args.heliocentric_scale)
+    solar_system.set_hco_scale(hco_scale)
 
     if args.command == "dimensions":
         return print_dimensions(solar_system, args.data_format)
