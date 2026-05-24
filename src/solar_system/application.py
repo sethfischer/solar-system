@@ -41,11 +41,11 @@ def print_dimensions_pretty(solar_system: SolarSystem) -> int:
 
     table = Table(title="Objects of the Solar System")
     table.add_column("Name")
-    table.add_column("Diameter\nkm")
-    table.add_column("Distance from Sun\nkm")
-    table.add_column(f"Model diameter\n{scale_formatted}\nmm")
-    table.add_column(f"Model distance from sun\n{hco_scale_formatted}\nmm")
-    table.add_column("Model distance from sun\nhybrid scale\nmm")
+    table.add_column("Diameter\n(km)")
+    table.add_column("Distance from Sun\n(km)")
+    table.add_column(f"Model diameter\n{scale_formatted}\n(mm)")
+    table.add_column(f"Model distance from sun\n{hco_scale_formatted}\n(mm)")
+    table.add_column("Model distance from sun\nhybrid scale\n(mm)")
 
     for celestial_body in solar_system.celestial_bodies():
         scaled_hco = celestial_body.scaled_hco_mm(solar_system.hco_scale)
@@ -81,7 +81,7 @@ def print_dimensions_csv(solar_system: SolarSystem) -> int:
             "Distance from Sun (km)",
             f"Model diameter {scale_formatted} (mm)",
             f"Model distance from sun {hco_scale_formatted} (mm)",
-            "Model distance from sun hybrid scale mm",
+            "Model distance from sun hybrid scale (mm)",
         ]
     )
 
